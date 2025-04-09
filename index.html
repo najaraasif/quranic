@@ -166,7 +166,8 @@
       tafsirContainer.style.display = "block";
 
       try {
-        const res = await fetch("http://localhost:5000/api/ai-tafsir", {
+        const res = await fetch("https://quranic.onrender.com/api/ai-tafsir", {
+
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
