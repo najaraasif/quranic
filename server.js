@@ -61,8 +61,9 @@ app.post('/api/ai-tafsir', async (req, res) => {
   }
 });
 app.get('/', (req, res) => {
-    res.send('✅ Quran Tafsir backend is running.');
-  });
+  res.sendFile(__dirname + '/public/index.html');
+});
+
 
 app.listen(PORT, () => {
   console.log(`✅ Tafsir server running at http://localhost:${PORT}`);
