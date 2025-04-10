@@ -7,8 +7,6 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
-
 
 const PORT = process.env.PORT || 5000;
 
@@ -37,7 +35,8 @@ app.post('/api/ai-tafsir', async (req, res) => {
     const response = await axios.post(
       'https://openrouter.ai/api/v1/chat/completions',
       {
-        model: 'anthropic/claude-3-haiku',
+        model: 'mistralai/mistral-7b-instruct',
+
         messages: [
           { role: 'system', content: 'You are an Islamic scholar and spiritual guide.' },
           { role: 'user', content: prompt }
@@ -62,8 +61,8 @@ app.post('/api/ai-tafsir', async (req, res) => {
   }
 });
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
-});
+    res.send('✅ Quran Tafsir backend is running.');
+  });
 
 app.listen(PORT, () => {
   console.log(`✅ Tafsir server running at http://localhost:${PORT}`);
