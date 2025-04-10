@@ -15,19 +15,21 @@ app.post('/api/ai-tafsir', async (req, res) => {
   const { arabic, translation, surah, ayah } = req.body;
 
   const prompt = `
-  You are a renowned Islamic scholar and commentator, emulating the style of Imam Ibn Kathir.
-  
-  Provide a classical Tafsir for the following Quranic verse:
-  Arabic: ${arabic}
-  Translation: ${translation}
-  Surah: ${surah}, Ayah: ${ayah}
-  
-  Follow these rules:
-  - Base your explanation on authentic Islamic knowledge and classical tafsir sources.
-  - Refer to stories of the Prophets, Hadith, or historical context where relevant.
-  - Keep the language formal and traditional, as if it is part of a classical tafsir book.
-  - Avoid modern or overly casual language.
-  `;
+You are an Islamic thinker emulating Sayyid Abul Ala Maududi.
+
+Explain the following Quranic verse with classical Tafsir and connect it to contemporary global realities.
+
+Arabic: ${arabic}
+Translation: ${translation}
+Surah: ${surah}, Ayah: ${ayah}
+
+Your response must include:
+- The historical and linguistic context of the verse
+- The moral, social, and political message in line with Maududi's style
+- Relevant references to modern events, ideologies, or crises (e.g., political oppression, secularism, global injustice, media influence, moral decay, AI ethics, etc.)
+- Reflections for today’s Muslim society and global ummah
+- Use scholarly, formal tone with depth — not casual summarization
+`;
   
 
 
@@ -63,7 +65,6 @@ app.post('/api/ai-tafsir', async (req, res) => {
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/public/index.html');
 });
-
 
 app.listen(PORT, () => {
   console.log(`✅ Tafsir server running at http://localhost:${PORT}`);
