@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quranic Reflections</title>
   <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="https://unsplash.it/360/640?blur&gravity=center">
+
   <style>
     :root {
       --green: #1c3d36;
@@ -131,6 +136,18 @@
     transform: translate(-50%, -50%);
   }
 }
+#urduTafsirText {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  font-size: 1.2rem;
+  line-height: 2.2;
+  direction: rtl;
+  color: #333;
+  background: #fefcf8;
+  padding: 1rem;
+  border-left: 4px solid #d4af37;
+  margin-top: 1.5rem;
+}
+
 
   </style>
 </head>
@@ -152,9 +169,14 @@
         <button class="pause-btn" id="pauseBtn" style="display: none;">⏸ Pause</button>
         <button class="refresh-btn" id="refreshBtn">🔄 New Ayah</button>
         <button class="bookmark-btn" id="bookmarkBtn">🔖 Bookmark</button>
-        <button class="tafsir-btn" id="tafsirBtn">📖 View Tafsir</button>
+        <button class="tafsir-btn" id="tafsirBtn">📖 English Tafsir</button>
+        <button class="tafsir-btn" id="urduTafsirBtn" style="background-color: #2c3e50;">📘 Urdu Tafsir</button>
+
+
         <button class="share-social" id="screenshotBtn">📸 Save Image</button>
         <button class="share-social" id="viewBookmarksBtn" style="background-color: #7f8c8d;">📚 View Bookmarks</button>
+        <button class="share-social" id="igStoryBtn" style="background-color: #e84393;">📲 IG Story</button>
+
 
       </div>
 
@@ -167,15 +189,21 @@
       </div>
 
       <div id="tafsirContainer">
-        <h3>Tafsir (Explanation)</h3>
-        <div id="tafsirText">Loading...</div>
-      </div>
+  <h3>Tafsir (Explanation)</h3>
+  <div id="tafsirText">Loading...</div>
+
+  
+</div>
+<div id="urduTafsirText" style="display: none; font-family: 'Noto Nastaliq Urdu', serif; font-size: 1.2rem; line-height: 2; direction: rtl; margin-top: 1.5rem; background: #fefcf8; padding: 1rem; border-left: 4px solid #d4af37;"></div>
+
+  </div>
     </div>
     <div id="bookmarksModal" style="display: none; margin-top: 2rem; padding: 1rem; border: 2px solid var(--gold); background: white; border-radius: 12px;">
       <h3>🔖 Your Bookmarked Ayahs</h3>
       <div id="bookmarksList" style="margin-top: 1rem;"></div>
     </div>
-    
+  
+
   </main>
   
 </div>
@@ -201,6 +229,83 @@
     const playBtn = document.getElementById("playBtn");
     const pauseBtn = document.getElementById("pauseBtn");
     const tafsirBtn = document.getElementById("tafsirBtn");
+    // Toggle English Tafsir
+document.getElementById("tafsirBtn").addEventListener("click", async () => {
+  const tafsirContainer = document.getElementById("tafsirContainer");
+  const tafsirText = document.getElementById("tafsirText");
+  const urduTafsirText = document.getElementById("urduTafsirText");
+
+  // Hide Urdu tafsir if visible
+  urduTafsirText.style.display = "none";
+
+  if (tafsirText.innerHTML.trim() !== "" && tafsirContainer.style.display === "block") {
+    tafsirContainer.style.display = "none";
+  } else {
+    tafsirText.innerHTML = "⏳ Loading Tafsir...";
+    tafsirContainer.style.display = "block";
+
+    try {
+      const res = await fetch("http://localhost:5000/api/ai-tafsir", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          arabic: currentAyah.arabic,
+          translation: currentAyah.translation,
+          surah: currentAyah.surahName,
+          ayah: currentAyah.ayahNumber
+        })
+      });
+
+      const data = await res.json();
+      tafsirText.innerHTML = data.tafsir
+        ? data.tafsir.replace(/\n/g, "<br>")
+        : "❌ Tafsir not available.";
+    } catch (err) {
+      console.error("Tafsir fetch failed:", err);
+      tafsirText.innerHTML = "⚠️ Failed to load Tafsir.";
+    }
+  }
+});
+
+// Toggle Urdu Tafsir
+document.getElementById("urduTafsirBtn").addEventListener("click", async () => {
+  const urduTafsirDiv = document.getElementById("urduTafsirText");
+  const tafsirContainer = document.getElementById("tafsirContainer");
+  const tafsirText = document.getElementById("tafsirText");
+
+  // Hide English tafsir
+  tafsirText.innerHTML = "";
+  tafsirContainer.style.display = "block";
+
+  if (urduTafsirDiv.innerHTML.trim() !== "" && urduTafsirDiv.style.display === "block") {
+    urduTafsirDiv.style.display = "none";
+  } else {
+    urduTafsirDiv.innerHTML = "⏳ اردو تفسیر تیار کی جا رہی ہے...";
+    urduTafsirDiv.style.display = "block";
+
+    try {
+      const res = await fetch("http://localhost:5000/api/ai-tafsir-urdu", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          arabic: currentAyah.arabic,
+          translation: currentAyah.translation,
+          surah: currentAyah.surahName,
+          ayah: currentAyah.ayahNumber
+        })
+      });
+
+      const data = await res.json();
+      urduTafsirDiv.innerHTML = data.tafsir
+        ? data.tafsir.replace(/\n/g, "<br>")
+        : "❌ اردو تفسیر دستیاب نہیں۔";
+    } catch (err) {
+      console.error("Urdu Tafsir error:", err);
+      urduTafsirDiv.innerHTML = "⚠️ اردو تفسیر لوڈ نہیں ہو سکی۔";
+    }
+  }
+});
+
     const refreshBtn = document.getElementById("refreshBtn");
     const bookmarkBtn = document.getElementById("bookmarkBtn");
 
@@ -210,11 +315,18 @@
     }
 
     async function loadRandomAyah() {
-  setText("arabic", "🔄 Loading...");
-  setText("translation", "");
-  setText("reference", "");
-  document.getElementById("tafsirContainer").style.display = "none";
-  document.getElementById("tafsirText").innerHTML = "";
+      setText("arabic", "🔄 Loading...");
+setText("translation", "");
+setText("reference", "");
+
+document.getElementById("tafsirContainer").style.display = "none";
+document.getElementById("tafsirText").innerHTML = "";
+
+// ✅ Clear Urdu Tafsir too:
+const urduTafsirDiv = document.getElementById("urduTafsirText");
+urduTafsirDiv.innerHTML = "";
+urduTafsirDiv.style.display = "none";
+
 
   try {
     const surah = Math.floor(Math.random() * 114); // index: 0–113
@@ -303,7 +415,7 @@
       tafsirContainer.style.display = "block";
 
       try {
-        const res = await fetch("https://quranic.onrender.com/api/ai-tafsir", {
+        const res = await fetch("http://localhost:5000/api/ai-tafsir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -432,9 +544,132 @@ function closePopup() {
 }
 
 document.getElementById("bookmarkBtn").addEventListener("click", bookmarkAyah);
+//URDU TAFSIR
+document.getElementById("urduTafsirBtn").addEventListener("click", async () => {
+  const urduTafsirDiv = document.getElementById("urduTafsirText");
+
+  if (!currentAyah) {
+    urduTafsirDiv.innerHTML = "کوئی آیت منتخب نہیں ہوئی۔";
+    urduTafsirDiv.style.display = "block";
+    return;
+  }
+
+  urduTafsirDiv.innerHTML = " .....Loading ⏳";
+  urduTafsirDiv.style.display = "block";
+
+  console.log("📤 Sending Urdu Tafsir request for:", currentAyah);
+
+  try {
+    const res = await fetch("http://localhost:5000/api/ai-tafsir-urdu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        arabic: currentAyah.arabic,
+        translation: currentAyah.translation,
+        surah: currentAyah.surahName,
+        ayah: currentAyah.ayahNumber
+      })
+    });
+
+    const data = await res.json();
+    urduTafsirDiv.innerHTML = data.tafsir
+      ? data.tafsir.replace(/\n/g, "<br>")
+      : "❌ اردو تفسیر دستیاب نہیں۔";
+
+  } catch (err) {
+    console.error("🛑 Urdu Tafsir Fetch Failed:", err);
+    urduTafsirDiv.innerHTML = "⚠️ اردو تفسیر لوڈ نہیں ہو سکی۔<br><code>" + err.message + "</code>";
+  }
+});
+document.getElementById("igStoryBtn").onclick = async () => {
+  const igArabic = document.getElementById("igArabic");
+  const igTranslation = document.getElementById("igTranslation");
+  const igReference = document.getElementById("igReference");
+
+  if (!currentAyah) {
+    alert("❗ Ayah not loaded.");
+    return;
+  }
+
+  // Set content
+  igArabic.textContent = currentAyah.arabic;
+  igTranslation.textContent = currentAyah.translation;
+  igReference.textContent = currentAyah.reference;
+
+  // Display for capture
+  const igDiv = document.getElementById("igStory");
+  igDiv.style.display = "block";
+
+ 
+};
+
+function downloadIGStory() {
+  const wrapper = document.getElementById("igStoryWrapper"); // 🟡 include the ring
+
+  html2canvas(wrapper, {
+    useCORS: true,
+    backgroundColor: null,
+    scale: 2
+  }).then(canvas => {
+    const link = document.createElement("a");
+    link.download = "ayah-instagram-story.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+}
+
+function closeIGStory() {
+  document.getElementById("igStory").style.display = "none";
+}
+
+document.getElementById("igStoryBtn").addEventListener("click", () => {
+  if (!currentAyah) {
+    alert("❗ Please load an Ayah first.");
+    return;
+  }
+
+  // Fill the story card content
+  document.getElementById("igArabic").innerText = currentAyah.arabic;
+  document.getElementById("igTranslation").innerText = currentAyah.translation;
+  document.getElementById("igReference").innerText = currentAyah.reference;
+
+  document.getElementById("igStory").style.display = "block";
+});
+
+
+document.getElementById("igStoryBtn").addEventListener("click", () => {
+  if (!currentAyah) {
+    alert("❗ Please load an Ayah first.");
+    return;
+  }
+
+  // Fill the story card content
+  document.getElementById("igArabic").innerText = currentAyah.arabic;
+  document.getElementById("igTranslation").innerText = currentAyah.translation;
+  document.getElementById("igReference").innerText = currentAyah.reference;
+
+  document.getElementById("igStory").style.display = "block";
+});
+
+
+document.getElementById("igStoryBtn").addEventListener("click", () => {
+  const igDiv = document.getElementById("igStory");
+
+  if (!currentAyah) {
+    alert("❗ Please load an Ayah first.");
+    return;
+  }
+
+  // Set story content
+  document.getElementById("igArabic").textContent = currentAyah.arabic;
+  document.getElementById("igTranslation").textContent = currentAyah.translation;
+  document.getElementById("igReference").textContent = currentAyah.reference;
+
+  igDiv.style.display = "block";
+});
 
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
 <!-- Bookmark Popup -->
 <div id="bookmarkPopup" style="
   display: none;
@@ -470,6 +705,52 @@ document.getElementById("bookmarkBtn").addEventListener("click", bookmarkAyah);
     border-radius: 6px;
     cursor: pointer;
   ">OK</button>
+</div>
+
+
+<div id="igStory" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; text-align: center;">
+  <!-- Ring Wrapper -->
+  <div id="igStoryWrapper" style="
+    display: inline-block;
+    padding: 10px;
+    border-radius: 50px;
+    background: conic-gradient(
+      #feda75,
+      #fa7e1e,
+      #d62976,
+      #962fbf,
+      #4f5bd5,
+      #feda75
+    );
+  ">
+    <!-- Inner Card -->
+    <div id="igStoryContent" style="
+      width: 360px;
+      height: 640px;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px 25px;
+      text-align: center;
+    ">
+      <div id="igArabic" style="font-family: 'Amiri', serif; font-size: 2rem; direction: rtl; margin-bottom: 20px;"></div>
+      <div id="igTranslation" style="font-size: 1.2rem; font-style: italic; margin-bottom: 20px;"></div>
+      <div id="igReference" style="font-size: 1rem; font-weight: bold;"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div style="margin-top: 15px;">
+    <button onclick="downloadIGStory()" style="background: white; color: black; padding: 8px 18px; border-radius: 6px; font-weight: bold;">⬇ Download</button>
+    <button onclick="closeIGStory()" style="background-color: #e74c3c; color: white; padding: 6px 14px; border-radius: 6px; font-weight: bold; margin-left: 10px;">✖ Close</button>
+  </div>
 </div>
 
 
