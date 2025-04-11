@@ -69,3 +69,47 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`✅ Tafsir server running at http://localhost:${PORT}`);
 });
+app.post("/api/ai-tafsir-urdu", async (req, res) => {
+  const { arabic, translation, surah, ayah } = req.body;
+
+  const prompt = `
+آپ ایک اسلامی مفسر ہیں اور سید ابو الاعلیٰ مودودی کے انداز میں قرآن کی آیات کی تفسیر اردو زبان میں بیان کرتے ہیں۔
+
+برائے مہربانی درج ذیل آیت کی مکمل، خوبصورت اور سادہ زبان میں اردو تفسیر فراہم کریں۔ اس میں سیاق و سباق اور آج کے دور کے حوالے بھی شامل کریں۔
+
+Arabic: ${arabic}
+Translation: ${translation}
+Surah: ${surah}, Ayah: ${ayah}
+`;
+
+  try {
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "openai/gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: "You are an Islamic scholar. Respond only in formal Urdu with rich vocabulary and classical tone."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const tafsir = response.data.choices?.[0]?.message?.content || "❌ کوئی تفسیر دستیاب نہیں۔";
+    res.json({ tafsir });
+  } catch (error) {
+    console.error("Urdu Tafsir Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "❌ ترجمہ ناکام ہو گیا۔" });
+  }
+});
